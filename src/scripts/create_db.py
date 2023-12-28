@@ -299,20 +299,20 @@ class db:
         return game_ids_not_added
 
 
-def update_all_data(conn, season):
+def update_all_data(conn, season, dates):
     """Combines all the update functions above into one function that updates all my data"""
     obj = db(conn=conn)
     print("updating basic team boxscores")
     obj.update_team_basic_boxscores(season=season)
     print("updating advanced team/player boxscores")
-    obj.update_team_advanced_boxscores(season=season)
+    obj.update_team_advanced_boxscores(season=season,dates=dates)
     print("updating scoring boxscores")
-    obj.update_team_scoring_boxscores(season=season)
+    obj.update_team_scoring_boxscores(season=season,dates=dates)
     
 if __name__ == '__main__':
     conn = sqlite3.connect("C:\\Users\\alexp\\src\\NBA_Models\\sqlite\\db\\nba_data.db")
     obj = db(conn=conn)
     #obj.add_basic_boxscores(2013,2023)
     #obj.add_advanced_boxscores(2013,2023)
-    obj.add_scoring_boxscores(2013,2023)
+    update_all_data(conn=conn, season=2023,dates=['2023-12-22'])
     print(obj.season_df)
