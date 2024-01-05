@@ -78,11 +78,11 @@ class transform:
 
         df['HOME_GAME'] = df['MATCHUP'].str.contains('vs').astype(int)
 
-        df = df.dropna(subset=['E_OFF_RATING'])
+        df.dropna(inplace=True)
 
         return df
     
-    def prep_for_aggregation(self,df):
+    def convert_pcts(self,df):
         """This function...
         1) Removes categories that are percentages,
         as we will be averaging them and do not want to average 

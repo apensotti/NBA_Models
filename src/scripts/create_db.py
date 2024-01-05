@@ -314,5 +314,5 @@ if __name__ == '__main__':
     obj = db(conn=conn)
     #obj.add_basic_boxscores(2013,2023)
     #obj.add_advanced_boxscores(2013,2023)
-    update_all_data(conn=conn, season=2023,dates=['2023-12-22'])
+    update_all_data(conn=conn, season=2023,dates=[])
     print(obj.season_df)
