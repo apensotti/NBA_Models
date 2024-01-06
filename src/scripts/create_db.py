@@ -6,7 +6,8 @@ from nba_api.stats.library.parameters import SeasonAll
 from nba_api.stats.endpoints import leaguegamelog
 from nba_api.stats.endpoints import boxscoreadvancedv2
 from nba_api.stats.endpoints import boxscorescoringv2
-from nba_api.stats.endpoints import playergamelog
+from nba_api.stats.endpoints import playergamelogs
+from nba_api.stats.endpoints import playerindex
 
 from IPython.core.display import clear_output
 
@@ -23,6 +24,8 @@ class db:
         self.conn = conn
         self.season_boxscores = []
         self.season_df = None
+        self.players = []
+        self.player_df = None
 
     def create_connection(self, db_file):
         """ create a database connection to a SQLite database """
@@ -153,7 +156,7 @@ class db:
                 print('{} games {} in {}'.format(season_type ,len(game_ids), season))
                 for game_id in tqdm(game_ids, desc='progress'):
                     try:
-                        player_logs = playergamelog.PlayerGameLog(game_id).get_data_frames()[1]
+                        player_logs = boxscorescoringv2.BoxScoreScoringV2(game_id).get_data_frames()[1]
                         player_logs.to_sql(table_name, self.conn, if_exists='append', index=False)
                     except:
                         game_ids_not_added.append(game_id)
@@ -165,7 +168,7 @@ class db:
         self.conn.commit()
 
         return game_ids_not_added
-    
+
     def add_player_game_logs(self, start_season, end_season, if_exists='append'):
         table_name = 'player_game_logs'
         game_ids_not_added = []
@@ -174,31 +177,24 @@ class db:
             self.conn.execute('DROP TABLE IF EXISTS ' + table_name)
             self.conn.execute('VACUUM')
 
-        conn.execute('''CREATE TABLE IF NOT EXISTS {} ("SEASON_YEAR",
-            PLAYER_ID,PLAYER_NAME,TEAM_ID,TEAM_ABBREVIATION,TEAM_NAME,
-            GAME_ID,GAME_DATE,MATCHUP,WL,MIN,FGM,FGA,FG_PCT,FG3M,FG3A,FG3_PCT,FTM,FTA,FT_PCT,OREB,
-            DREB,REB,AST,TOV,STL,BLK,BLKA,PF,PFD,PTS,PLUS_MINUS,NBA_FANTASY_PTS,DD2,TD3,GP_RANK,
-            W_RANK,L_RANK,W_PCT_RANK,MIN_RANK,FGM_RANK,FGA_RANK,FG_PCT_RANK,FG3M_RANK,FG3A_RANK,FG3_PCT_RANK,
-            FTM_RANK,FTA_RANK,FT_PCT_RANK,OREB_RANK,DREB_RANK,REB_RANK,AST_RANK,TOV_RANK,STL_RANK,BLK_RANK,
-            BLKA_RANK,PF_RANK,PFD_RANK,PTS_RANK,PLUS_MINUS_RANK,NBA_FANTASY_PTS_RANK,DD2_RANK,TD3_RANK)'''.format(table_name))
+        conn.execute('''CREATE TABLE IF NOT EXISTS {} (SEASON_YEAR, PLAYER_ID, PLAYER_NAME, NICKNAME, TEAM_ID, TEAM_ABBREVIATION, TEAM_NAME,
+            GAME_ID, GAME_DATE, MATCHUP, WL, MIN, FGM, FGA, FG_PCT, FG3M, FG3A, FG3_PCT, FTM,FTA, FT_PCT, OREB,
+            DREB, REB, AST, TOV, STL, BLK, BLKA, PF, PFD, PTS, PLUS_MINUS, NBA_FANTASY_PTS, DD2, TD3, GP_RANK,
+            W_RANK, L_RANK, W_PCT_RANK, MIN_RANK, FGM_RANK, FGA_RANK, FG_PCT_RANK, FG3M_RANK, FG3A_RANK, FG3_PCT_RANK,
+            FTM_RANK, FTA_RANK, FT_PCT_RANK, OREB_RANK, DREB_RANK, REB_RANK, AST_RANK, TOV_RANK, STL_RANK, BLK_RANK,
+            BLKA_RANK, PF_RANK, PFD_RANK, PTS_RANK, PLUS_MINUS_RANK, NBA_FANTASY_PTS_RANK, DD2_RANK, TD3_RANK, WNBA_FANTASY_PTS,WNBA_FANTASY_PTS_RANK,AVAILABLE_FLAG)'''.format(table_name))
         
         for season in range(start_season, end_season+1):
             season_str = season_string(season)
             season_team_boxscores = []
 
-            for season_type in ['Regular Season', 'Playoffs']:
-                logs = leaguegamelog.LeagueGameLog(season=season, season_type_all_star=season_type).get_data_frames()[0]
-                game_ids = logs['GAME_ID'].unique()
-
-                print('{} games {} in {}'.format(season_type ,len(game_ids), season))
-                for game_id in tqdm(game_ids, desc='progress'):
-                    try:
-                        scoring_boxscores = boxscorescoringv2.BoxScoreScoringV2(game_id).get_data_frames()[1]
-                        scoring_boxscores.to_sql(table_name, self.conn, if_exists='append', index=False)
-                    except:
-                        game_ids_not_added.append(game_id)
-                    time.sleep(.5)
-                clear_output(wait=True)
+            
+            scoring_boxscores = playergamelogs.PlayerGameLogs(season_nullable=season_str,league_id_nullable='00').get_data_frames()[0]
+            print(scoring_boxscores)
+            scoring_boxscores.to_sql(table_name, self.conn, if_exists='append', index=False)
+            
+                
+            time.sleep(.5)
 
         cur = self.conn.cursor()
         cur.execute('DELETE FROM {} WHERE rowid NOT IN (SELECT min(rowid) FROM {} GROUP BY TEAM_ID, GAME_ID)'.format(table_name, table_name))
@@ -415,6 +411,6 @@ if __name__ == '__main__':
     obj = db(conn=conn)
     #obj.add_basic_boxscores(2013,2023)
     #obj.add_advanced_boxscores(2013,2023)
-    obj.add_player_game_logs(2013,2023)
-    update_all_data(conn=conn, season=2023,dates=[])
-    print(obj.season_df)
+    obj.add_player_game_logs(2013,2014,if_exists='replace')
+    #update_all_data(conn=conn, season=2023,dates=[])
+    #print(obj.season_df)
