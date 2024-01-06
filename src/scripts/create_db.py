@@ -188,12 +188,9 @@ class db:
             season_str = season_string(season)
             season_team_boxscores = []
 
-            
             scoring_boxscores = playergamelogs.PlayerGameLogs(season_nullable=season_str,league_id_nullable='00').get_data_frames()[0]
-            print(scoring_boxscores)
             scoring_boxscores.to_sql(table_name, self.conn, if_exists='append', index=False)
             
-                
             time.sleep(.5)
 
         cur = self.conn.cursor()
@@ -411,6 +408,6 @@ if __name__ == '__main__':
     obj = db(conn=conn)
     #obj.add_basic_boxscores(2013,2023)
     #obj.add_advanced_boxscores(2013,2023)
-    obj.add_player_game_logs(2013,2014,if_exists='replace')
+    obj.add_player_game_logs(2013,2023,if_exists='replace')
     #update_all_data(conn=conn, season=2023,dates=[])
     #print(obj.season_df)
