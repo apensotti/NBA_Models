@@ -194,7 +194,6 @@ class db:
             time.sleep(.5)
 
         cur = self.conn.cursor()
-        cur.execute('DELETE FROM {} WHERE rowid NOT IN (SELECT min(rowid) FROM {} GROUP BY TEAM_ID, GAME_ID)'.format(table_name, table_name))
         self.conn.commit()
 
         return game_ids_not_added
