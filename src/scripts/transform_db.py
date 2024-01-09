@@ -21,14 +21,12 @@ class transform:
         basic = pd.read_sql("SELECT * FROM team_basic_boxscores", self.conn)
         adv = pd.read_sql("SELECT * FROM team_advanced_boxscores", self.conn)
         scoring = pd.read_sql("SELECT * FROM team_scoring_boxscores", self.conn)
-        player = pd.read_sql("SELECT * FROM player_game_logs", self.conn)
+
 
         temp = pd.merge(basic, adv, how='left', on=[
                         'GAME_ID', 'TEAM_ID'], suffixes=['', '_y'])
         temp2 = pd.merge(temp, scoring, how='left', on=[
                       'GAME_ID', 'TEAM_ID'], suffixes=['', '_y'])
-        df = pd.merge(temp2, player, how='left', 
-                      on=["GAME_ID","TEAM_ID"],suffixes=['', '_y'])
 
         df = df.drop(columns=['TEAM_NAME_y', 'TEAM_CITY',
                               'TEAM_ABBREVIATION_y',
