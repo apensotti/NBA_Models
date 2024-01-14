@@ -25,12 +25,8 @@ class transform:
 
         temp = pd.merge(basic, adv, how='left', on=[
                         'GAME_ID', 'TEAM_ID'], suffixes=['', '_y'])
-        temp2 = pd.merge(temp, scoring, how='left', on=[
+        df = pd.merge(temp, scoring, how='left', on=[
                       'GAME_ID', 'TEAM_ID'], suffixes=['', '_y'])
-
-        df = df.drop(columns=['TEAM_NAME_y', 'TEAM_CITY',
-                              'TEAM_ABBREVIATION_y',
-                              'TEAM_CITY_y', 'MIN_y','WNBA_FANTASY_PTS_y','WNBA_FANTASY_PTS_RANK_y'])
 
 
         df = df.loc[df['SEASON'].between(season_string(self.start_season), season_string(self.end_season))]
