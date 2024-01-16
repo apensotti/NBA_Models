@@ -76,7 +76,7 @@ class db:
 
         return None
     
-    def add_advanced_boxscores(self, start_season, end_season, if_exists='append'):
+    def add_advanced_boxscores(self, start_season, end_season, if_exists='replace'):
         """
         This function pulls advanced team boxscores from the NBA_API package 
         and appends (or creates a new table if not exists) it to the table team_advanced_boxscores in the sqlite db
@@ -108,14 +108,13 @@ class db:
                 logs = leaguegamelog.LeagueGameLog(season=season, season_type_all_star=season_type).get_data_frames()[0]
                 game_ids = logs['GAME_ID'].unique()
 
-                print('games {}'.format(len(game_ids)))
+                print('{} games {}'.format(season,len(game_ids)))
                 for game_id in tqdm(game_ids, desc='progress'):
                     try:
                         team_boxscores = boxscoreadvancedv2.BoxScoreAdvancedV2(game_id).get_data_frames()[1]                    
                         team_boxscores.to_sql(table_name, self.conn, if_exists='append', index=False)
                     except:
                         game_ids_not_added.append(game_id)
-                    time.sleep(1)
                 clear_output(wait=True)
 
         cur = self.conn.cursor()

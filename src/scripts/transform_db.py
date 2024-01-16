@@ -37,9 +37,9 @@ class transform:
     def create_matchups(self, df):
         """This function makes each row a matchup between 
         team and opp"""
-        df = df.copy()
+        df2 = df.copy()
 
-        matchups = pd.merge(df, df, on=['GAME_ID'], suffixes=['_team', '_opp'])
+        matchups = pd.merge(df, df2, on=['GAME_ID'], suffixes=['_team', '_opp'], copy=False, how="left")
         matchups = matchups.loc[matchups['TEAM_ABBREVIATION_team'] != matchups['TEAM_ABBREVIATION_opp']]
 
         return matchups
