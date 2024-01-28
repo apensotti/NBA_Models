@@ -41,7 +41,7 @@ class db:
             if self.conn:
                 self.conn.close()
     
-    def add_basic_boxscores(self, start_season, end_season, if_exists='append'):
+    def add_basic_boxscores(self, start_season, end_season, if_exists='replace'):
     
         table_name = 'team_basic_boxscores'
 
@@ -123,7 +123,7 @@ class db:
 
         return None
     
-    def add_scoring_boxscores(self, start_season, end_season, if_exists='append'):
+    def add_scoring_boxscores(self, start_season, end_season, if_exists='replace'):
         """
         This function pulls scoring team boxscores from the NBA_API package 
         and appends (or creates a new table if not exists) it to the table team_scoring_boxscores in the sqlite db.
@@ -169,8 +169,8 @@ class db:
         self.conn.commit()
 
         return game_ids_not_added
-
-    def add_player_game_logs(self, start_season, end_season, if_exists='append'):
+    
+    def add_player_game_logs(self, start_season, end_season, if_exists='replace'):
         table_name = 'player_game_logs'
         game_ids_not_added = []
 
@@ -198,6 +198,42 @@ class db:
         self.conn.commit()
 
         return game_ids_not_added
+    
+    def add_boxscores_db(self, if_exists='replace'):
+        table_name = 'boxscores'
+
+        if if_exists == 'replace':
+            self.conn.execute('DROP TABLE IF EXISTS ' + table_name)
+            self.conn.execute('VACUUM')
+
+        conn.execute('''CREATE TABLE IF NOT EXISTS {} (SEASON_team, TEAM_ID_team, TEAM_ABBREVIATION_team,
+        TEAM_NAME_team, GAME_ID, GAME_DATE_team, MATCHUP_team,
+        HOME_GAME_team, TEAM_SCORE_team, POINT_DIFF_team, WL_team,
+        RECORD_team, FG2M_team, FG2A_team, FG3M_team, FG3A_team,
+        FTM_team, FTA_team, OREB_team, DREB_team, REB_team,
+        AST_team, STL_team, BLK_team, TOV_team, PF_team, PTS_team,
+        PLUS_MINUS_team, E_OFF_RATING_team, OFF_RATING_team,
+        E_DEF_RATING_team, DEF_RATING_team, E_NET_RATING_team,
+        NET_RATING_team, POSS_team, PIE_team, PTS_2PT_MR_team,
+        PTS_FB_team, PTS_OFF_TOV_team, PTS_PAINT_team, AST_2PM_team,AST_3PM_team, UAST_2PM_team, UAST_3PM_team, SEASON_opp,
+        TEAM_ID_opp, TEAM_ABBREVIATION_opp, TEAM_NAME_opp, GAME_DATE_opp, MATCHUP_opp, HOME_GAME_opp, 
+        TEAM_SCORE_opp, POINT_DIFF_opp, WL_opp, RECORD_opp, FG2M_opp, FG2A_opp,
+        FG3M_opp, FG3A_opp, FTM_opp, FTA_opp, OREB_opp, DREB_opp, REB_opp, AST_opp, STL_opp, BLK_opp, TOV_opp, PF_opp, PTS_opp, PLUS_MINUS_opp, E_OFF_RATING_opp, OFF_RATING_opp,
+        E_DEF_RATING_opp, DEF_RATING_opp, E_NET_RATING_opp, NET_RATING_opp, POSS_opp, PIE_opp, PTS_2PT_MR_opp, PTS_FB_opp,
+        PTS_OFF_TOV_opp, PTS_PAINT_opp, AST_2PM_opp, AST_3PM_opp, UAST_2PM_opp, UAST_3PM_opp)'''.format(table_name))
+
+        obj = transform(conn=conn,start_season=2013,end_season=2023)
+        data = obj.load_team_data()
+        cleaned = obj.clean_team_data(data)
+        cleaned = cleaned.dropna(subset='PCT_PTS_2PT')
+        convert_pct = obj.convert_pcts(cleaned)
+        matchups = obj.create_matchups(convert_pct)
+        df = matchups
+
+        df = df[df['HOME_GAME_team'] == 1]
+
+        df.to_sql(table_name, self.conn, if_exists='append', index=False)
+        self.conn.commit
     
     def update_team_basic_boxscores(self, season):
         table_name = 'team_basic_boxscores'
@@ -332,42 +368,7 @@ class db:
 
         return game_ids_not_added
 
-    def add_transformed_db(self, if_exists='replace'):
-        table_name = 'boxscores'
-
-        if if_exists == 'replace':
-            self.conn.execute('DROP TABLE IF EXISTS ' + table_name)
-            self.conn.execute('VACUUM')
-
-        conn.execute('''CREATE TABLE IF NOT EXISTS {} (SEASON_team, TEAM_ID_team, TEAM_ABBREVIATION_team,
-        TEAM_NAME_team, GAME_ID, GAME_DATE_team, MATCHUP_team,
-        HOME_GAME_team, TEAM_SCORE_team, POINT_DIFF_team, WL_team,
-        RECORD_team, FG2M_team, FG2A_team, FG3M_team, FG3A_team,
-        FTM_team, FTA_team, OREB_team, DREB_team, REB_team,
-        AST_team, STL_team, BLK_team, TOV_team, PF_team, PTS_team,
-        PLUS_MINUS_team, E_OFF_RATING_team, OFF_RATING_team,
-        E_DEF_RATING_team, DEF_RATING_team, E_NET_RATING_team,
-        NET_RATING_team, POSS_team, PIE_team, PTS_2PT_MR_team,
-        PTS_FB_team, PTS_OFF_TOV_team, PTS_PAINT_team, AST_2PM_team,AST_3PM_team, UAST_2PM_team, UAST_3PM_team, SEASON_opp,
-        TEAM_ID_opp, TEAM_ABBREVIATION_opp, TEAM_NAME_opp, GAME_DATE_opp, MATCHUP_opp, HOME_GAME_opp, 
-        TEAM_SCORE_opp, POINT_DIFF_opp, WL_opp, RECORD_opp, FG2M_opp, FG2A_opp,
-        FG3M_opp, FG3A_opp, FTM_opp, FTA_opp, OREB_opp, DREB_opp, REB_opp, AST_opp, STL_opp, BLK_opp, TOV_opp, PF_opp, PTS_opp, PLUS_MINUS_opp, E_OFF_RATING_opp, OFF_RATING_opp,
-        E_DEF_RATING_opp, DEF_RATING_opp, E_NET_RATING_opp, NET_RATING_opp, POSS_opp, PIE_opp, PTS_2PT_MR_opp, PTS_FB_opp,
-        PTS_OFF_TOV_opp, PTS_PAINT_opp, AST_2PM_opp, AST_3PM_opp, UAST_2PM_opp, UAST_3PM_opp)'''.format(table_name))
-
-        obj = transform(conn=conn,start_season=2013,end_season=2023)
-        data = obj.load_team_data()
-        cleaned = obj.clean_team_data(data)
-        cleaned = cleaned.dropna(subset='PCT_PTS_2PT')
-        convert_pct = obj.convert_pcts(cleaned)
-        matchups = obj.create_matchups(convert_pct)
-        df = matchups
-
-        df = df[df['HOME_GAME_team'] == 1]
-
-        df.to_sql(table_name, self.conn, if_exists='append', index=False)
-        self.conn.commit
-
+    
 
 def update_all_data(conn, season, dates):
     """Combines all the update functions above into one function that updates all my data"""
