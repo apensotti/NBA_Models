@@ -217,12 +217,19 @@ class load_clean:
                 'PLUS_MINUS_team', 'E_OFF_RATING_team', 'OFF_RATING_team',
                 'E_DEF_RATING_team', 'DEF_RATING_team', 'E_NET_RATING_team',
                 'NET_RATING_team', 'POSS_team', 'PIE_team', 'PTS_2PT_MR_team',
-                'PTS_FB_team', 'PTS_OFF_TOV_team', 'PTS_PAINT_team', 'AST_2PM_team','AST_3PM_team', 'UAST_2PM_team', 'UAST_3PM_team', 'SEASON_opp',
-                'TEAM_ID_opp', 'TEAM_ABBREVIATION_opp', 'TEAM_NAME_opp', 'GAME_DATE_opp', 'MATCHUP_opp', 'HOME_GAME_opp', 
-                'TEAM_SCORE_opp', 'POINT_DIFF_opp', 'WL_opp', 'RECORD_opp', 'FG2M_opp', 'FG2A_opp',
-                'FG3M_opp', 'FG3A_opp', 'FTM_opp', 'FTA_opp', 'OREB_opp', 'DREB_opp', 'REB_opp', 'AST_opp', 'STL_opp', 'BLK_opp', 'TOV_opp', 'PF_opp', 'PTS_opp', 'PLUS_MINUS_opp', 'E_OFF_RATING_opp', 'OFF_RATING_opp',
-                'E_DEF_RATING_opp', 'DEF_RATING_opp', 'E_NET_RATING_opp', 'NET_RATING_opp', 'POSS_opp', 'PIE_opp', 'PTS_2PT_MR_opp', 'PTS_FB_opp',
-                'PTS_OFF_TOV_opp', 'PTS_PAINT_opp', 'AST_2PM_opp', 'AST_3PM_opp', 'UAST_2PM_opp', 'UAST_3PM_opp']
+                'PTS_FB_team', 'PTS_OFF_TOV_team', 'PTS_PAINT_team', 'AST_2PM_team',
+                'AST_3PM_team', 'UAST_2PM_team', 'UAST_3PM_team', 'SEASON_opp',
+                'TEAM_ID_opp', 'TEAM_ABBREVIATION_opp', 'TEAM_NAME_opp', 'GAME_DATE_opp', 
+                'MATCHUP_opp', 'HOME_GAME_opp','TEAM_SCORE_opp', 'POINT_DIFF_opp', 'WL_opp', 
+                'RECORD_opp', 'FG2M_opp', 'FG2A_opp',
+                'FG3M_opp', 'FG3A_opp', 'FTM_opp', 'FTA_opp', 'OREB_opp', 'DREB_opp', 
+                'REB_opp', 'AST_opp', 'STL_opp', 'BLK_opp', 
+                'TOV_opp', 'PF_opp', 'PTS_opp', 'PLUS_MINUS_opp', 'E_OFF_RATING_opp', 
+                'OFF_RATING_opp',
+                'E_DEF_RATING_opp', 'DEF_RATING_opp', 'E_NET_RATING_opp', 
+                'NET_RATING_opp', 'POSS_opp', 'PIE_opp', 'PTS_2PT_MR_opp', 'PTS_FB_opp',
+                'PTS_OFF_TOV_opp', 'PTS_PAINT_opp', 'AST_2PM_opp', 'AST_3PM_opp', 
+                'UAST_2PM_opp', 'UAST_3PM_opp']
 
         for row in rows3:
             boxscores_list.append(row)
@@ -231,7 +238,29 @@ class load_clean:
 
         boxscores.columns = columns
 
-        return pd.DataFrame(boxscores)
+        boxscores_clean = boxscores[['GAME_ID','TEAM_ID_team','TEAM_ID_opp','SEASON_team','GAME_DATE_team',
+                'TEAM_NAME_team','TEAM_NAME_opp', 'MATCHUP_team','TEAM_ABBREVIATION_team',
+                'HOME_GAME_team', 'TEAM_SCORE_team', 'POINT_DIFF_team', 'WL_team',
+                'RECORD_team', 'FG2M_team', 'FG2A_team', 'FG3M_team', 'FG3A_team',
+                'FTM_team', 'FTA_team', 'OREB_team', 'DREB_team', 'REB_team',
+                'AST_team', 'STL_team', 'BLK_team', 'TOV_team', 'PF_team', 'PTS_team',
+                'PLUS_MINUS_team', 'E_OFF_RATING_team', 'OFF_RATING_team',
+                'E_DEF_RATING_team', 'DEF_RATING_team', 'E_NET_RATING_team',
+                'NET_RATING_team', 'POSS_team', 'PIE_team', 'PTS_2PT_MR_team',
+                'PTS_FB_team', 'PTS_OFF_TOV_team', 'PTS_PAINT_team', 'AST_2PM_team',
+                'AST_3PM_team', 'UAST_2PM_team', 'UAST_3PM_team',
+                'TEAM_ABBREVIATION_opp', 'HOME_GAME_opp','TEAM_SCORE_opp', 'POINT_DIFF_opp', 'WL_opp', 
+                'RECORD_opp', 'FG2M_opp', 'FG2A_opp',
+                'FG3M_opp', 'FG3A_opp', 'FTM_opp', 'FTA_opp', 'OREB_opp', 'DREB_opp', 
+                'REB_opp', 'AST_opp', 'STL_opp', 'BLK_opp', 
+                'TOV_opp', 'PF_opp', 'PTS_opp', 'PLUS_MINUS_opp', 'E_OFF_RATING_opp', 
+                'OFF_RATING_opp',
+                'E_DEF_RATING_opp', 'DEF_RATING_opp', 'E_NET_RATING_opp', 
+                'NET_RATING_opp', 'POSS_opp', 'PIE_opp', 'PTS_2PT_MR_opp', 'PTS_FB_opp',
+                'PTS_OFF_TOV_opp', 'PTS_PAINT_opp', 'AST_2PM_opp', 'AST_3PM_opp', 
+                'UAST_2PM_opp', 'UAST_3PM_opp']]
+
+        return pd.DataFrame(boxscores_clean)
 
     def players(self):
         import numpy as np
