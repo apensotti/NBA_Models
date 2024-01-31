@@ -200,27 +200,25 @@ class db:
         return game_ids_not_added
     
     def add_boxscores_db(self, if_exists='replace'):
-        table_name = 'boxscores'
+        table_name = 'boxscore'
 
         if if_exists == 'replace':
             self.conn.execute('DROP TABLE IF EXISTS ' + table_name)
             self.conn.execute('VACUUM')
 
-        conn.execute('''CREATE TABLE IF NOT EXISTS {} (SEASON_team, TEAM_ID_team, TEAM_ABBREVIATION_team,
-        TEAM_NAME_team, GAME_ID, GAME_DATE_team, MATCHUP_team,
-        HOME_GAME_team, TEAM_SCORE_team, POINT_DIFF_team, WL_team,
-        RECORD_team, FG2M_team, FG2A_team, FG3M_team, FG3A_team,
-        FTM_team, FTA_team, OREB_team, DREB_team, REB_team,
-        AST_team, STL_team, BLK_team, TOV_team, PF_team, PTS_team,
-        PLUS_MINUS_team, E_OFF_RATING_team, OFF_RATING_team,
-        E_DEF_RATING_team, DEF_RATING_team, E_NET_RATING_team,
-        NET_RATING_team, POSS_team, PIE_team, PTS_2PT_MR_team,
-        PTS_FB_team, PTS_OFF_TOV_team, PTS_PAINT_team, AST_2PM_team,AST_3PM_team, UAST_2PM_team, UAST_3PM_team, SEASON_opp,
-        TEAM_ID_opp, TEAM_ABBREVIATION_opp, TEAM_NAME_opp, GAME_DATE_opp, MATCHUP_opp, HOME_GAME_opp, 
-        TEAM_SCORE_opp, POINT_DIFF_opp, WL_opp, RECORD_opp, FG2M_opp, FG2A_opp,
-        FG3M_opp, FG3A_opp, FTM_opp, FTA_opp, OREB_opp, DREB_opp, REB_opp, AST_opp, STL_opp, BLK_opp, TOV_opp, PF_opp, PTS_opp, PLUS_MINUS_opp, E_OFF_RATING_opp, OFF_RATING_opp,
-        E_DEF_RATING_opp, DEF_RATING_opp, E_NET_RATING_opp, NET_RATING_opp, POSS_opp, PIE_opp, PTS_2PT_MR_opp, PTS_FB_opp,
-        PTS_OFF_TOV_opp, PTS_PAINT_opp, AST_2PM_opp, AST_3PM_opp, UAST_2PM_opp, UAST_3PM_opp)'''.format(table_name))
+        conn.execute('''CREATE TABLE IF NOT EXISTS {} (SEASON_home, TEAM_ID_home, TEAM_ABBREVIATION_home,
+        TEAM_NAME_home, GAME_ID, GAME_DATE_home, MATCHUP_home,
+        HOME_GAME_home, WL_home, FG2M_home, FG2A_home, FG3M_home, FG3A_home,
+        FTM_home, FTA_home, OREB_home, DREB_home, REB_home,
+        AST_home, STL_home, BLK_home, TOV_home, PF_home, PTS_home,
+        PLUS_MINUS_home, E_OFF_RATING_home, OFF_RATING_home,
+        E_DEF_RATING_home, DEF_RATING_home, E_NET_RATING_home,
+        NET_RATING_home, POSS_home, PIE_home, PTS_2PT_MR_home,
+        PTS_FB_home, PTS_OFF_TOV_home, PTS_PAINT_home, AST_2PM_home,AST_3PM_home, UAST_2PM_home, UAST_3PM_home, SEASON_away,
+        TEAM_ID_away, TEAM_ABBREVIATION_away, TEAM_NAME_away, GAME_DATE_away, MATCHUP_away, HOME_GAME_away, WL_away, FG2M_away, FG2A_away,
+        FG3M_away, FG3A_away, FTM_away, FTA_away, OREB_away, DREB_away, REB_away, AST_away, STL_away, BLK_away, TOV_away, PF_away, PTS_away, PLUS_MINUS_away, E_OFF_RATING_away, OFF_RATING_away,
+        E_DEF_RATING_away, DEF_RATING_away, E_NET_RATING_away, NET_RATING_away, POSS_away, PIE_away, PTS_2PT_MR_away, PTS_FB_away,
+        PTS_OFF_TOV_away, PTS_PAINT_away, AST_2PM_away, AST_3PM_away, UAST_2PM_away, UAST_3PM_away)'''.format(table_name))
 
         obj = transform(conn=conn,start_season=2013,end_season=2023)
         data = obj.load_team_data()
@@ -230,9 +228,9 @@ class db:
         matchups = obj.create_matchups(convert_pct)
         df = matchups
 
-        df = df[df['HOME_GAME_team'] == 1]
+        df = df[df['HOME_GAME_home'] == 1]
 
-        df.to_sql(table_name, self.conn, if_exists='append', index=False)
+        df.to_sql(table_name, self.conn, if_exists='replace', index=False)
         self.conn.commit
     
     def update_team_basic_boxscores(self, season):
@@ -384,7 +382,7 @@ def update_all_data(conn, season, dates):
 if __name__ == '__main__':
     conn = sqlite3.connect("C:\\Users\\alexp\\src\\NBA_Models\\sqlite\\db\\nba_data.db")
     obj = db(conn=conn)
-    obj.add_transformed_db()
+    obj.add_boxscores_db()
     #obj.add_basic_boxscores(2013,2023)
     #obj.add_advanced_boxscores(2013,2023)
     #obj.add_player_game_logs(2013,2023,if_exists='replace')

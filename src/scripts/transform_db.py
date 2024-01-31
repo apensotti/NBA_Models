@@ -5,7 +5,6 @@ import warnings
 import sqlite3
 from sqlite3 import Error
 
-
 def season_string(season):
     return str(season) + '-' + str(season+1)[-2:]
 
@@ -42,8 +41,8 @@ class transform:
         team and opp"""
         df2 = df.copy()
 
-        matchups = pd.merge(df, df2, on=['GAME_ID'], suffixes=['_team', '_opp'], copy=False, how="left")
-        matchups = matchups.loc[matchups['TEAM_ABBREVIATION_team'] != matchups['TEAM_ABBREVIATION_opp']]
+        matchups = pd.merge(df, df2, on=['GAME_ID'], suffixes=['_home', '_away'], copy=False, how="left")
+        matchups = matchups.loc[matchups['TEAM_ABBREVIATION_home'] != matchups['TEAM_ABBREVIATION_away']]
 
         return matchups
     
@@ -107,13 +106,9 @@ class transform:
         df['UAST_2PM'] = (df['FG2M'] * df['PCT_UAST_2PM']).astype('int8')
         df['UAST_3PM'] = (df['FG3M'] * df['PCT_UAST_3PM']).astype('int8')
 
-        df['POINT_DIFF'] = df['PLUS_MINUS']
-        df['RECORD'] = df['WL']
-        df['TEAM_SCORE'] = df['PTS']
 
         df = df[['SEASON', 'TEAM_ID', 'TEAM_ABBREVIATION', 'TEAM_NAME', 'GAME_ID',
-                 'GAME_DATE', 'MATCHUP', 'HOME_GAME', 'TEAM_SCORE', 'POINT_DIFF', 'WL',
-                 'RECORD', 'FG2M', 'FG2A', 'FG3M', 'FG3A', 'FTM', 'FTA', 'OREB', 'DREB',
+                 'GAME_DATE', 'MATCHUP', 'HOME_GAME', 'WL', 'FG2M', 'FG2A', 'FG3M', 'FG3A', 'FTM', 'FTA', 'OREB', 'DREB',
                  'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 'PLUS_MINUS',
                  'E_OFF_RATING', 'OFF_RATING', 'E_DEF_RATING', 'DEF_RATING',
                  'E_NET_RATING', 'NET_RATING', 'POSS', 'PIE', 'PTS_2PT_MR',
@@ -133,7 +128,6 @@ class load_clean:
         :param db_file: database file
         :return: Connection object or None
         """
-
         try:
             conn = sqlite3.connect(self.db_file)
         except Error as e:
@@ -202,34 +196,34 @@ class load_clean:
 
         return scoring_boxscores
     
-    def boxscores(self):
+    def boxscore_matchups(self):
         self.cur.execute("SELECT * FROM boxscores")
         rows3 = self.cur.fetchall()
 
         boxscores_list = []
 
-        columns = ['SEASON_team', 'TEAM_ID_team', 'TEAM_ABBREVIATION_team',
-                'TEAM_NAME_team', 'GAME_ID', 'GAME_DATE_team', 'MATCHUP_team',
-                'HOME_GAME_team', 'TEAM_SCORE_team', 'POINT_DIFF_team', 'WL_team',
-                'RECORD_team', 'FG2M_team', 'FG2A_team', 'FG3M_team', 'FG3A_team',
-                'FTM_team', 'FTA_team', 'OREB_team', 'DREB_team', 'REB_team',
-                'AST_team', 'STL_team', 'BLK_team', 'TOV_team', 'PF_team', 'PTS_team',
-                'PLUS_MINUS_team', 'E_OFF_RATING_team', 'OFF_RATING_team',
-                'E_DEF_RATING_team', 'DEF_RATING_team', 'E_NET_RATING_team',
-                'NET_RATING_team', 'POSS_team', 'PIE_team', 'PTS_2PT_MR_team',
-                'PTS_FB_team', 'PTS_OFF_TOV_team', 'PTS_PAINT_team', 'AST_2PM_team',
-                'AST_3PM_team', 'UAST_2PM_team', 'UAST_3PM_team', 'SEASON_opp',
-                'TEAM_ID_opp', 'TEAM_ABBREVIATION_opp', 'TEAM_NAME_opp', 'GAME_DATE_opp', 
-                'MATCHUP_opp', 'HOME_GAME_opp','TEAM_SCORE_opp', 'POINT_DIFF_opp', 'WL_opp', 
-                'RECORD_opp', 'FG2M_opp', 'FG2A_opp',
-                'FG3M_opp', 'FG3A_opp', 'FTM_opp', 'FTA_opp', 'OREB_opp', 'DREB_opp', 
-                'REB_opp', 'AST_opp', 'STL_opp', 'BLK_opp', 
-                'TOV_opp', 'PF_opp', 'PTS_opp', 'PLUS_MINUS_opp', 'E_OFF_RATING_opp', 
-                'OFF_RATING_opp',
-                'E_DEF_RATING_opp', 'DEF_RATING_opp', 'E_NET_RATING_opp', 
-                'NET_RATING_opp', 'POSS_opp', 'PIE_opp', 'PTS_2PT_MR_opp', 'PTS_FB_opp',
-                'PTS_OFF_TOV_opp', 'PTS_PAINT_opp', 'AST_2PM_opp', 'AST_3PM_opp', 
-                'UAST_2PM_opp', 'UAST_3PM_opp']
+        columns = ['SEASON_home', 'TEAM_ID_home', 'TEAM_ABBREVIATION_home',
+                'TEAM_NAME_home', 'GAME_ID', 'GAME_DATE_home', 'MATCHUP_home',
+                'HOME_GAME_home', 'WL_home',
+                'FG2M_home', 'FG2A_home', 'FG3M_home', 'FG3A_home',
+                'FTM_home', 'FTA_home', 'OREB_home', 'DREB_home', 'REB_home',
+                'AST_home', 'STL_home', 'BLK_home', 'TOV_home', 'PF_home', 'PTS_home',
+                'PLUS_MINUS_home', 'E_OFF_RATING_home', 'OFF_RATING_home',
+                'E_DEF_RATING_home', 'DEF_RATING_home', 'E_NET_RATING_home',
+                'NET_RATING_home', 'POSS_home', 'PIE_home', 'PTS_2PT_MR_home',
+                'PTS_FB_home', 'PTS_OFF_TOV_home', 'PTS_PAINT_home', 'AST_2PM_home',
+                'AST_3PM_home', 'UAST_2PM_home', 'UAST_3PM_home', 'SEASON_away',
+                'TEAM_ID_away', 'TEAM_ABBREVIATION_away', 'TEAM_NAME_away', 'GAME_DATE_away', 
+                'MATCHUP_away', 'HOME_GAME_away','WL_away', 
+                'FG2M_away', 'FG2A_away',
+                'FG3M_away', 'FG3A_away', 'FTM_away', 'FTA_away', 'OREB_away', 'DREB_away', 
+                'REB_away', 'AST_away', 'STL_away', 'BLK_away', 
+                'TOV_away', 'PF_away', 'PTS_away', 'PLUS_MINUS_away', 'E_OFF_RATING_away', 
+                'OFF_RATING_away',
+                'E_DEF_RATING_away', 'DEF_RATING_away', 'E_NET_RATING_away', 
+                'NET_RATING_away', 'POSS_away', 'PIE_away', 'PTS_2PT_MR_away', 'PTS_FB_away',
+                'PTS_OFF_TOV_away', 'PTS_PAINT_away', 'AST_2PM_away', 'AST_3PM_away', 
+                'UAST_2PM_away', 'UAST_3PM_away']
 
         for row in rows3:
             boxscores_list.append(row)
@@ -238,32 +232,31 @@ class load_clean:
 
         boxscores.columns = columns
 
-        boxscores_clean = boxscores[['GAME_ID','TEAM_ID_team','TEAM_ID_opp','SEASON_team','GAME_DATE_team',
-                'TEAM_NAME_team','TEAM_NAME_opp', 'MATCHUP_team','TEAM_ABBREVIATION_team',
-                'HOME_GAME_team', 'TEAM_SCORE_team', 'POINT_DIFF_team', 'WL_team',
-                'RECORD_team', 'FG2M_team', 'FG2A_team', 'FG3M_team', 'FG3A_team',
-                'FTM_team', 'FTA_team', 'OREB_team', 'DREB_team', 'REB_team',
-                'AST_team', 'STL_team', 'BLK_team', 'TOV_team', 'PF_team', 'PTS_team',
-                'PLUS_MINUS_team', 'E_OFF_RATING_team', 'OFF_RATING_team',
-                'E_DEF_RATING_team', 'DEF_RATING_team', 'E_NET_RATING_team',
-                'NET_RATING_team', 'POSS_team', 'PIE_team', 'PTS_2PT_MR_team',
-                'PTS_FB_team', 'PTS_OFF_TOV_team', 'PTS_PAINT_team', 'AST_2PM_team',
-                'AST_3PM_team', 'UAST_2PM_team', 'UAST_3PM_team',
-                'TEAM_ABBREVIATION_opp', 'HOME_GAME_opp','TEAM_SCORE_opp', 'POINT_DIFF_opp', 'WL_opp', 
-                'RECORD_opp', 'FG2M_opp', 'FG2A_opp',
-                'FG3M_opp', 'FG3A_opp', 'FTM_opp', 'FTA_opp', 'OREB_opp', 'DREB_opp', 
-                'REB_opp', 'AST_opp', 'STL_opp', 'BLK_opp', 
-                'TOV_opp', 'PF_opp', 'PTS_opp', 'PLUS_MINUS_opp', 'E_OFF_RATING_opp', 
-                'OFF_RATING_opp',
-                'E_DEF_RATING_opp', 'DEF_RATING_opp', 'E_NET_RATING_opp', 
-                'NET_RATING_opp', 'POSS_opp', 'PIE_opp', 'PTS_2PT_MR_opp', 'PTS_FB_opp',
-                'PTS_OFF_TOV_opp', 'PTS_PAINT_opp', 'AST_2PM_opp', 'AST_3PM_opp', 
-                'UAST_2PM_opp', 'UAST_3PM_opp']]
+        boxscores_clean = boxscores[['GAME_ID','TEAM_ID_home','TEAM_ID_away','SEASON_home','GAME_DATE_home',
+                'TEAM_NAME_home','TEAM_NAME_away', 'MATCHUP_home','TEAM_ABBREVIATION_home',
+                'HOME_GAME_home', 'WL_home',
+                'FG2M_home', 'FG2A_home', 'FG3M_home', 'FG3A_home',
+                'FTM_home', 'FTA_home', 'OREB_home', 'DREB_home', 'REB_home',
+                'AST_home', 'STL_home', 'BLK_home', 'TOV_home', 'PF_home', 'PTS_home',
+                'PLUS_MINUS_home', 'E_OFF_RATING_home', 'OFF_RATING_home',
+                'E_DEF_RATING_home', 'DEF_RATING_home', 'E_NET_RATING_home',
+                'NET_RATING_home', 'POSS_home', 'PIE_home', 'PTS_2PT_MR_home',
+                'PTS_FB_home', 'PTS_OFF_TOV_home', 'PTS_PAINT_home', 'AST_2PM_home',
+                'AST_3PM_home', 'UAST_2PM_home', 'UAST_3PM_home',
+                'TEAM_ABBREVIATION_away', 'HOME_GAME_away','WL_away', 
+                'FG2M_away', 'FG2A_away',
+                'FG3M_away', 'FG3A_away', 'FTM_away', 'FTA_away', 'OREB_away', 'DREB_away', 
+                'REB_away', 'AST_away', 'STL_away', 'BLK_away', 
+                'TOV_away', 'PF_away', 'PTS_away', 'PLUS_MINUS_away', 'E_OFF_RATING_away', 
+                'OFF_RATING_away',
+                'E_DEF_RATING_away', 'DEF_RATING_away', 'E_NET_RATING_away', 
+                'NET_RATING_away', 'POSS_away', 'PIE_away', 'PTS_2PT_MR_away', 'PTS_FB_away',
+                'PTS_OFF_TOV_away', 'PTS_PAINT_away', 'AST_2PM_away', 'AST_3PM_away', 
+                'UAST_2PM_away', 'UAST_3PM_away']]
 
         return pd.DataFrame(boxscores_clean)
 
     def players(self):
-        import numpy as np
 
         self.cur.execute("SELECT * FROM player_game_logs")
         rows3 = self.cur.fetchall()
@@ -290,3 +283,35 @@ class load_clean:
         player_index['PLAYER_ID'] = player_index['PLAYER_ID'].astype(str, copy=True)
 
         return pd.DataFrame(player_index)
+    
+    def agg_boxscores_raw(self):
+        self.cur.execute("SELECT * FROM team_basic_boxscores as bb JOIN team_advanced_boxscores as ab on bb.GAME_ID = ab.GAME_ID AND bb.TEAM_ID = ab.TEAM_ID JOIN team_scoring_boxscores as sb ON bb.GAME_ID = sb.GAME_ID and bb.TEAM_ID = sb.TEAM_ID")
+        rows3 = self.cur.fetchall()
+
+        db_scoring_list = []
+
+        for row in rows3:
+            db_scoring_list.append(row)
+
+        player_index = pd.DataFrame(data=db_scoring_list)
+
+        player_index.columns = ['SEASON', 'TEAM_ID', 'TEAM_ABBREVIATION', 
+                    'TEAM_NAME', 'GAME_ID', 'GAME_DATE', 'MATCHUP', 'WL', 'MIN', 'FGM', 'FGA', 
+                    'FG_PCT', 'FG3M', 'FG3A', 'FG3_PCT', 'FTM', 'FTA', 'FT_PCT', 'OREB',
+                    'DREB', 'REB', 'AST', 'STL', 'BLK', 'TOV', 'PF', 'PTS', 
+                    'PTS_DIFF', 'GAME_ID_drop', 'TEAM_ID_drop', 'TEAM_NAME_drop', 
+                    'TEAM_ABBREVIATION_drop', 'TEAM_CITY_drop', 'MIN_drop', 'E_OFF_RATING', 'OFF_RATING', 'E_DEF_RATING', 
+                    'DEF_RATING', 'E_NET_RATING', 'NET_RATING', 'AST_PCT', 'AST_TOV', 
+                    'AST_RATIO', 'OREB_PCT', 'DREB_PCT', 'REB_PCT', 'E_TM_TOV_PCT', 
+                    'TM_TOV_PCT', 'EFG_PCT', 'TS_PCT', 'USG_PCT', 'E_USG_PCT', 'E_PACE', 
+                    'PACE', 'PACE_PER40', 'POSS', 'PIE', 'GAME_ID_drop', 'TEAM_ID_drop', 'TEAM_NAME_drop', 'TEAM_ABBREVIATION_drop', 'TEAM_CITY_drop',
+                    'MIN_drop', 'PCT_FGA_2PT', 'PCT_FGA_3PT', 'PCT_PTS_2PT', 'PCT_PTS_2PT_MR',
+                    'PCT_PTS_3PT', 'PCT_PTS_FB', 'PCT_PTS_FT', 'PCT_PTS_OFF_TOV',
+                    'PCT_PTS_PAINT', 'PCT_AST_2PM', 'PCT_UAST_2PM', 'PCT_AST_3PM',
+                    'PCT_UAST_3PM', 'PCT_AST_FGM', 'PCT_UAST_FGM']
+        
+        remove_column_lst = ['TEAM_ABBREVIATION_drop','TEAM_ID_drop', 'TEAM_CITY_drop', 'TEAM_NAME_drop', 'GAME_ID_drop', 'MIN_drop']
+
+        tdf1 = player_index[player_index.columns[~player_index.columns.isin(remove_column_lst)]]
+        
+        return tdf1
