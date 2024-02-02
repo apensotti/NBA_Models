@@ -9,22 +9,23 @@ from tensorflow.keras.optimizers import Adam
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import matplotlib.pyplot as plt
+import json
 import numpy as np
 import re
 import sqlite3
 
-version_number = 1
-global_model_name = ''
-
 class ModelConfig:
+    version_number = 1
+    global_model_name = ''
     def __init__(self, X, y, train_test_val_split):
-        self.version = ''
+        self.version_str = ''
         self.X = X
         self.y = y
         self.train_test_val_split = train_test_val_split
         self.data_shape = self.X.shape
         self.epochs = None
         self.model_path = None
+        self.config_path = None
 
         self.model = None
 
@@ -54,35 +55,38 @@ class ModelConfig:
 
         return self.model
     
-    def save_version(self,model_name):
-        if global_model_name != model_name:
-            version_number = 1
-            global_model_name = self.model_name
-            self.version = version_str
+    def version(self,model_name):
+        if ModelConfig.global_model_name != model_name:
+            ModelConfig.version_number = 1
+            ModelConfig.global_model_name = model_name
+            self.version_str = f'{ModelConfig.global_model_name}v{ModelConfig.version_number}'
         else:
-            version_number += 1
-            version_str = f'{global_model_name}v{version_number}'
-            self.version = version_str
+            ModelConfig.version_number += 1
+            ModelConfig.global_model_name = model_name
+            self.version_str = f'{ModelConfig.global_model_name}v{ModelConfig.version_number}'
 
-        return f'{global_model_name}v{version_number}'
+        return self.version_str
 
-    def compile(self,):
-        cp = ModelCheckpoint(self.model_path, save_best_only=True)
-        self.model.compile(loss=MeanSquaredError(), optimizer=Adam(learning_rate=.00001), metrics=[RootMeanSquaredError()])
-
-    def create_config(self):
+    def create_config(self,model_name,config_path):
+        self.config_path = config_path
+        self.version_str = self.version(model_name)
+        path_string = config_path+self.version_str+'.json'
 
         layers = []
         optimizer = self.model.optimizer.get_config()
         loss = self.model.loss.name
         metrics = [metric.name for metric in self.model.metrics]
 
+        optimizer['epsilon'] = ("%.15f" % optimizer['epsilon']).rstrip('0')
+        optimizer['learning_rate'] = ("%.15f" % optimizer['learning_rate']).rstrip('0')
+
         for layer in self.model.layers:
             layers.append(layer.get_config())
 
         config = {
             
-            "version":self.version,
+            "version_name":self.version_str,
+            "version":self.version_number,
             "build_info":tf.sysconfig.get_build_info(),
             "input_shape":self.data_shape[1:],
             "output_classes":layers[-1]['units'],
@@ -93,6 +97,11 @@ class ModelConfig:
                 "metrics":metrics
             }
             }
+        
+        with open(path_string, 'w') as f:
+            json.dump(config, f, indent=4)
+
+        return f"Config Created: {self.config_path}{self.version_str}.json"
 
     def load_config(self):
         pass
