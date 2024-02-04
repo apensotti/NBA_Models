@@ -23,7 +23,7 @@
     "output_classes": 1,
     "layers": [
         {
-            "name": "lstm_6",
+            "name": "lstm_2",
             "trainable": true,
             "dtype": "float32",
             "return_sequences": false,
@@ -32,7 +32,7 @@
             "stateful": false,
             "unroll": false,
             "time_major": false,
-            "units": 128,
+            "units": 64,
             "activation": "tanh",
             "recurrent_activation": "sigmoid",
             "use_bias": true,
@@ -60,7 +60,14 @@
                 "registered_name": null
             },
             "unit_forget_bias": true,
-            "kernel_regularizer": null,
+            "kernel_regularizer": {
+                "module": "keras.regularizers",
+                "class_name": "L2",
+                "config": {
+                    "l2": 9.999999747378752e-05
+                },
+                "registered_name": null
+            },
             "recurrent_regularizer": null,
             "bias_regularizer": null,
             "activity_regularizer": null,
@@ -72,11 +79,19 @@
             "implementation": 2
         },
         {
-            "name": "dense_12",
+            "name": "dropout_6",
             "trainable": true,
             "dtype": "float32",
-            "units": 8,
-            "activation": "relu",
+            "rate": 0.2,
+            "noise_shape": null,
+            "seed": null
+        },
+        {
+            "name": "dense_9",
+            "trainable": true,
+            "dtype": "float32",
+            "units": 32,
+            "activation": "tanh",
             "use_bias": true,
             "kernel_initializer": {
                 "module": "keras.initializers",
@@ -92,14 +107,71 @@
                 "config": {},
                 "registered_name": null
             },
-            "kernel_regularizer": null,
+            "kernel_regularizer": {
+                "module": "keras.regularizers",
+                "class_name": "L2",
+                "config": {
+                    "l2": 9.999999747378752e-05
+                },
+                "registered_name": null
+            },
             "bias_regularizer": null,
             "activity_regularizer": null,
             "kernel_constraint": null,
             "bias_constraint": null
         },
         {
-            "name": "dense_13",
+            "name": "dropout_7",
+            "trainable": true,
+            "dtype": "float32",
+            "rate": 0.2,
+            "noise_shape": null,
+            "seed": null
+        },
+        {
+            "name": "dense_10",
+            "trainable": true,
+            "dtype": "float32",
+            "units": 16,
+            "activation": "tanh",
+            "use_bias": true,
+            "kernel_initializer": {
+                "module": "keras.initializers",
+                "class_name": "GlorotUniform",
+                "config": {
+                    "seed": null
+                },
+                "registered_name": null
+            },
+            "bias_initializer": {
+                "module": "keras.initializers",
+                "class_name": "Zeros",
+                "config": {},
+                "registered_name": null
+            },
+            "kernel_regularizer": {
+                "module": "keras.regularizers",
+                "class_name": "L2",
+                "config": {
+                    "l2": 9.999999747378752e-05
+                },
+                "registered_name": null
+            },
+            "bias_regularizer": null,
+            "activity_regularizer": null,
+            "kernel_constraint": null,
+            "bias_constraint": null
+        },
+        {
+            "name": "dropout_8",
+            "trainable": true,
+            "dtype": "float32",
+            "rate": 0.2,
+            "noise_shape": null,
+            "seed": null
+        },
+        {
+            "name": "dense_11",
             "trainable": true,
             "dtype": "float32",
             "units": 1,
@@ -119,7 +191,14 @@
                 "config": {},
                 "registered_name": null
             },
-            "kernel_regularizer": null,
+            "kernel_regularizer": {
+                "module": "keras.regularizers",
+                "class_name": "L2",
+                "config": {
+                    "l2": 9.999999747378752e-05
+                },
+                "registered_name": null
+            },
             "bias_regularizer": null,
             "activity_regularizer": null,
             "kernel_constraint": null,
