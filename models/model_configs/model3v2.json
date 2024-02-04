@@ -1,6 +1,6 @@
 {
-    "version_name": "testv1",
-    "version": 1,
+    "version_name": "model3v2",
+    "version": 2,
     "build_info": {
         "cpu_compiler": "/usr/lib/llvm-17/bin/clang",
         "cuda_compute_capabilities": [
@@ -17,13 +17,13 @@
         "is_tensorrt_build": true
     },
     "input_shape": [
-        10,
-        34
+        30,
+        20
     ],
     "output_classes": 1,
     "layers": [
         {
-            "name": "lstm",
+            "name": "lstm_4",
             "trainable": true,
             "dtype": "float32",
             "return_sequences": false,
@@ -32,7 +32,7 @@
             "stateful": false,
             "unroll": false,
             "time_major": false,
-            "units": 64,
+            "units": 128,
             "activation": "tanh",
             "recurrent_activation": "sigmoid",
             "use_bias": true,
@@ -72,7 +72,7 @@
             "implementation": 2
         },
         {
-            "name": "dense",
+            "name": "dense_8",
             "trainable": true,
             "dtype": "float32",
             "units": 8,
@@ -99,7 +99,7 @@
             "bias_constraint": null
         },
         {
-            "name": "dense_1",
+            "name": "dense_9",
             "trainable": true,
             "dtype": "float32",
             "units": 1,
@@ -139,15 +139,12 @@
             "ema_overwrite_frequency": null,
             "jit_compile": true,
             "is_legacy_optimizer": false,
-            "learning_rate": "0.000009999999747",
+            "learning_rate": "0.000500000023749",
             "beta_1": 0.9,
             "beta_2": 0.999,
             "epsilon": "0.0000001",
             "amsgrad": false
         },
-        "metrics": [
-            "loss",
-            "root_mean_squared_error"
-        ]
+        "metrics": []
     }
 }

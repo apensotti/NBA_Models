@@ -103,8 +103,6 @@ class ModelConfig:
 
         return f"Config Created: {self.config_path}{self.version_str}.json"
 
-    def load_config(self):
-        pass
     
-    def create_model_from_config(self,layer_config):
+    def create_model_from_config(self,config):
         pass
