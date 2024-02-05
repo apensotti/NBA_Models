@@ -13,6 +13,10 @@ import json
 import numpy as np
 import re
 import sqlite3
+from scripts.DataETL.transform_db import load_clean
+from scripts.DataETL.transform_db import transform
+
+db_path = "/home/alexp/NBA_Models/sqlite/db/nba_data.db"
 
 class ModelConfig:
     version_number = 1
@@ -23,10 +27,11 @@ class ModelConfig:
         self.y = y
         self.train_test_val_split = train_test_val_split
         self.data_shape = self.X.shape
-        self.epochs = None
+
         self.model_path = None
         self.config_path = None
 
+        self.epochs = None
         self.model = None
 
         self.X_train = None
@@ -106,3 +111,44 @@ class ModelConfig:
     
     def create_model_from_config(self,config):
         pass
+
+class InputData:
+    def __init__(self,df):
+        self.conn = sqlite3.connect(db_path)
+        self.bas_boxscores = load_clean.basic_boxscores()
+        self.adv_boxscores = load_clean.basic_boxscores()
+        self.scr_boxscores = load_clean.basic_boxscores()
+        self.player_boxscores = load_clean.basic_boxscores()
+        self.basic_boxscores = load_clean.basic_boxscores()
+        self.basic_boxscores = load_clean.basic_boxscores()
+
+    def raw_data_df
+
+    def clean_df(self):
+        # raw data
+        load = load_clean(db_path)
+        agg_boxscores = load.agg_boxscores_raw()
+        players = load.players()
+
+        #merged data
+        conn = sqlite3.connect(db_path)
+
+        clean = transform(conn,2013,2023)
+        game_data = clean.load_team_data()
+        game_data = clean.clean_team_data(game_data)
+        game_data = game_data.dropna(subset='PCT_PTS_2PT')
+        game_data = clean.convert_pcts(game_data)
+
+        game_data['TEAM_ID'] = game_data['TEAM_ID'].astype('string')
+        game_data['GAME_ID'] = game_data['GAME_ID'].astype('string')
+
+        transformed_players = players.groupby(["TEAM_ID",'GAME_ID']).mean(numeric_only=True).reset_index()
+
+        transformed_players['TEAM_ID'] = transformed_players['TEAM_ID'].astype('string')
+        transformed_players['GAME_ID'] = transformed_players['GAME_ID'].astype('string')
+
+        transformed_players = transformed_players.drop(columns=['WNBA_FANTASY_PTS_RANK','AVAILABLE_FLAG','WNBA_FANTASY_PTS'])
+
+        merged_data = pd.merge(left=game_data,right=transformed_players,on=['GAME_ID','TEAM_ID'],suffixes=['_game','_players'])
+        merged_data = merged_data.drop(columns=['TEAM_ID','GAME_ID','TEAM_NAME','GAME_DATE','MATCHUP','TD3','TD3_RANK'])
+        
