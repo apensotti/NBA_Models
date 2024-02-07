@@ -3,6 +3,8 @@ import numpy as np
 import warnings
 import sqlite3
 from sqlite3 import Error
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder
 
 def season_string(season):
     return str(season) + '-' + str(season+1)[-2:]
@@ -133,14 +135,17 @@ class transform:
 
         player_boxscores = pd.read_sql("SELECT * FROM player_game_logs", self.conn)
         player_boxscores = self.clean_team_data(player_boxscores)
-
+        player_boxscores = player_boxscores.loc[:,~player_boxscores.columns.str.contains('_RANK')].drop(['WNBA_FANTASY_PTS','AVAILABLE_FLAG'],axis=1)
+        
+        player_boxscores['MIN'] = player_boxscores['MIN'].round(0)
         player_boxscores['TEAM_ID'] = player_boxscores['TEAM_ID'].astype('string')
         player_boxscores['GAME_ID'] = player_boxscores['GAME_ID'].astype('string')
+        player_boxscores['PLAYER_ID'] = player_boxscores['PLAYER_ID'].astype('string')
 
-        transformed_players = player_boxscores.groupby(["TEAM_ID",'GAME_ID']).mean(numeric_only=True).reset_index()
-        transformed_players = transformed_players.drop(columns=['WNBA_FANTASY_PTS_RANK','AVAILABLE_FLAG','WNBA_FANTASY_PTS'])
+        transformed_players = player_boxscores.groupby(["TEAM_ID",'GAME_ID']).mean(numeric_only=True).reset_index().drop(['WL','HOME_GAME'],axis=1)
 
         merged_data = pd.merge(left=team_boxscores,right=transformed_players,on=['GAME_ID','TEAM_ID'],suffixes=['_game','_players'])
+        merged_data = merged_data.drop(['TEAM_ID','GAME_ID','TEAM_NAME','GAME_DATE','MATCHUP','TD3'],axis=1)
     
         if type == types[0]:
             df = team_boxscores
@@ -153,6 +158,89 @@ class transform:
 
         return df
 
+    def standard_scalar(self,df):
+        scaler = StandardScaler()
+        filter = [a for i,a in enumerate(df.dtypes.keys()) if (((df.dtypes[a] in [np.dtype('int8'),np.dtype('int16'),np.dtype('int32'),np.dtype('int64')]) or (df.dtypes[a] in [np.dtype('float16'),np.dtype('float32'),np.dtype('float64')])) and (a not in ['WL','HOME_GAME','SEASON','TEAM_ABBREVIATION']))]
+        df[filter] = scaler.fit_transform(df[filter])
+        return df
+
+    def label_encoder(self,df,columns):
+        for column in columns:
+            encoder = LabelEncoder()
+            encoder.fit(df[column])
+            df[column] = encoder.transform(df[column])
+
+        return df
+    
+    def create_windows(self,df,window_size,type='single'):
+        X_list = []
+        y_list = []
+        if type == 'multi':
+            for i in range(len(df['TEAM_ABBREVIATION'].unique())):
+                team = df.loc[df['TEAM_ABBREVIATION'] == i]
+                team_label = team['WL'].copy()
+                team = team.drop('WL',axis=1)
+
+                team_np = team.to_numpy()
+                team_label = team_label.to_numpy()
+
+                #temp_X = []
+                #temp_y = []
+
+                for i in range(len(team_np)-window_size):        
+                  row = [a for a in team_np[i:i+window_size]]
+                  X_list.append(row)
+
+                  label = team_label[i+window_size]
+                  y_list.append(label)
+
+            X_list = np.array(X_list)
+            y_list = np.array(y_list)
+
+            return X_list,y_list
+        if type == 'single':
+            team = df.drop('WL',axis=1)
+            team_label = df['WL'].copy()
+
+            team_np = team.to_numpy()
+            team_label = team_label.to_numpy()
+
+            for i in range(len(team_np)-window_size):        
+                  row = [a for a in team_np[i:i+window_size]]
+                  X_list.append(row)
+
+                  label = team_label[i+window_size]
+                  y_list.append(label)
+
+            X_list = np.array(X_list)
+            y_list = np.array(y_list)
+
+            return X_list,y_list
+        
+    def convert_pct_change(self,df,type='single'):
+        filter = [a for i,a in enumerate(df.dtypes.keys()) if (((df.dtypes[a] in [np.dtype('int8'),np.dtype('int16'),np.dtype('int32'),np.dtype('int64')]) or (df.dtypes[a] in [np.dtype('float16'),np.dtype('float32'),np.dtype('float64')])) and (a not in ['WL','HOME_GAME','SEASON','TEAM_ABBREVIATION']))]
+        if type == 'single':
+            df[filter] = df[filter].pct_change(axis='index',periods=1)
+            df[filter] = df[filter].replace([np.inf,-np.inf], 0)
+            df.reset_index(inplace=True)
+
+            return df
+        elif type == 'multi':
+            df_list = []
+            for i in range(len(df['TEAM_ABBREVIATION'].unique())):
+                team = df.loc[df['TEAM_ABBREVIATION'] == i]
+                team[filter] = team[filter].pct_change(axis='index',periods=1)
+                team[filter] = team[filter].replace([np.inf,-np.inf], 0)
+                team.reset_index(inplace=True)
+                df_list.append(team)
+            df = pd.concat(df_list).reset_index()
+            df = df.loc[2:,:].drop(columns=['TEAM_ID','TEAM_NAME','GAME_ID','GAME_DATE','MATCHUP','UAST_3PM','PTS_2PT_MR','level_0','index'])
+            return df
+
+
+            
 
 
 
+        
+  

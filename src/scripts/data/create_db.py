@@ -382,7 +382,7 @@ def update_all_data(conn, season, dates):
 if __name__ == '__main__':
     conn = sqlite3.connect("C:\\Users\\alexp\\src\\NBA_Models\\sqlite\\db\\nba_data.db")
     obj = db(conn=conn)
-    obj.add_agg_boxscores()
+    #obj.add_agg_boxscores()
     #obj.add_basic_boxscores(2013,2023)
     #obj.add_advanced_boxscores(2013,2023)
     #obj.add_player_game_logs(2013,2023,if_exists='replace')
