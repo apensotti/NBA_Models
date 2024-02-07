@@ -16,7 +16,7 @@ from tqdm import tqdm
 import pandas as pd
 import time 
 
-from transform_db import transform
+from .transform_db import transform
 
 def season_string(season):
         return str(season) + '-' + str(season+1)[-2:]
@@ -199,7 +199,7 @@ class db:
 
         return game_ids_not_added
     
-    def add_boxscores_db(self, if_exists='replace'):
+    def add_matchups(self, if_exists='replace'):
         table_name = 'boxscore'
 
         if if_exists == 'replace':
@@ -382,7 +382,7 @@ def update_all_data(conn, season, dates):
 if __name__ == '__main__':
     conn = sqlite3.connect("C:\\Users\\alexp\\src\\NBA_Models\\sqlite\\db\\nba_data.db")
     obj = db(conn=conn)
-    obj.add_boxscores_db()
+    obj.add_agg_boxscores()
     #obj.add_basic_boxscores(2013,2023)
     #obj.add_advanced_boxscores(2013,2023)
     #obj.add_player_game_logs(2013,2023,if_exists='replace')
