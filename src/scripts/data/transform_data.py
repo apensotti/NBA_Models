@@ -114,7 +114,7 @@ class transform:
                  'E_NET_RATING', 'NET_RATING', 'POSS', 'PIE', 'PTS_2PT_MR',
                  'PTS_FB', 'PTS_OFF_TOV', 'PTS_PAINT', 'AST_2PM', 'AST_3PM',
                  'UAST_2PM', 'UAST_3PM']]
-
+#
         return df
     
     def transform(self,type='team_boxscores'):
@@ -128,7 +128,8 @@ class transform:
         team_boxscores = self.clean_team_data(team_boxscores)
         team_boxscores = team_boxscores.dropna(subset='PCT_PTS_2PT')
         team_boxscores = self.convert_pcts(team_boxscores)
-        matchups = self.create_matchups(team_boxscores)
+        matchups = self.create_matchups(team_boxscores).reset_index()
+        matchups = matchups.drop('index',axis=1)
 
         team_boxscores['TEAM_ID'] = team_boxscores['TEAM_ID'].astype('string')
         team_boxscores['GAME_ID'] = team_boxscores['GAME_ID'].astype('string')
@@ -145,7 +146,8 @@ class transform:
         transformed_players = player_boxscores.groupby(["TEAM_ID",'GAME_ID']).mean(numeric_only=True).reset_index().drop(['WL','HOME_GAME'],axis=1)
 
         merged_data = pd.merge(left=team_boxscores,right=transformed_players,on=['GAME_ID','TEAM_ID'],suffixes=['_game','_players'])
-        merged_data = merged_data.drop(['TEAM_ID','GAME_ID','TEAM_NAME','GAME_DATE','MATCHUP','TD3'],axis=1)
+        #'TEAM_NAME_y','TEAM_ABBREVIATION_y','TEAM_CITY_y','MIN_y','TEAM_CITY'
+        merged_data = merged_data.drop(['TEAM_ID','GAME_ID','TEAM_NAME','GAME_DATE','TD3'],axis=1)
     
         if type == types[0]:
             df = team_boxscores
@@ -160,7 +162,7 @@ class transform:
 
     def standard_scalar(self,df):
         scaler = StandardScaler()
-        filter = [a for i,a in enumerate(df.dtypes.keys()) if (((df.dtypes[a] in [np.dtype('int8'),np.dtype('int16'),np.dtype('int32'),np.dtype('int64')]) or (df.dtypes[a] in [np.dtype('float16'),np.dtype('float32'),np.dtype('float64')])) and (a not in ['WL','HOME_GAME','SEASON','TEAM_ABBREVIATION']))]
+        filter = [a for i,a in enumerate(df.dtypes.keys()) if (((df.dtypes[a] in [np.dtype('int8'),np.dtype('int16'),np.dtype('int32'),np.dtype('int64')]) or (df.dtypes[a] in [np.dtype('float16'),np.dtype('float32'),np.dtype('float64')])) and (a not in ['WL','HOME_GAME','SEASON','TEAM_ABBREVIATION','SEASON_home','HOME_GAME_away','WL_home','WL_away','HOME_GAME_home','TEAM_ABBREVIATION_home','TEAM_ABBREVIATION_away','TEAM_ID_home']))]
         df[filter] = scaler.fit_transform(df[filter])
         return df
 
@@ -172,14 +174,20 @@ class transform:
 
         return df
     
-    def create_windows(self,df,window_size,type='single'):
+    def create_windows(self,df,window_size,type='single',matchup=False):
         X_list = []
         y_list = []
+
+        matchup_sub = ''
+
+        if matchup == True:
+            matchup_sub = '_home'
+
         if type == 'multi':
-            for i in range(len(df['TEAM_ABBREVIATION'].unique())):
-                team = df.loc[df['TEAM_ABBREVIATION'] == i]
-                team_label = team['WL'].copy()
-                team = team.drop('WL',axis=1)
+            for i in range(len(df["TEAM_ABBREVIATION{0}".format(matchup_sub)].unique())):
+                team = df.loc[df["TEAM_ABBREVIATION{0}".format(matchup_sub)] == i]
+                team_label = team["WL{0}".format(matchup_sub)].copy()
+                team = team.drop("WL{0}".format(matchup_sub),axis=1)
 
                 team_np = team.to_numpy()
                 team_label = team_label.to_numpy()
@@ -199,8 +207,8 @@ class transform:
 
             return X_list,y_list
         if type == 'single':
-            team = df.drop('WL',axis=1)
-            team_label = df['WL'].copy()
+            team = df.drop("WL{0}".format(matchup_sub),axis=1)
+            team_label = df["WL{0}".format(matchup_sub)].copy()
 
             team_np = team.to_numpy()
             team_label = team_label.to_numpy()
@@ -229,7 +237,7 @@ class transform:
             df_list = []
             for i in range(len(df['TEAM_ABBREVIATION'].unique())):
                 team = df.loc[df['TEAM_ABBREVIATION'] == i]
-                team[filter] = team[filter].pct_change(axis='index',periods=1)
+                team[filter] = team[filter].pct_change(axis='index',periods=-1)
                 team[filter] = team[filter].replace([np.inf,-np.inf], 0)
                 team.reset_index(inplace=True)
                 df_list.append(team)

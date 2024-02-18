@@ -16,7 +16,7 @@ from tqdm import tqdm
 import pandas as pd
 import time 
 
-from .transform_db import transform
+from transform_data import transform
 
 def season_string(season):
         return str(season) + '-' + str(season+1)[-2:]
@@ -41,9 +41,13 @@ class db:
             if self.conn:
                 self.conn.close()
     
-    def add_basic_boxscores(self, start_season, end_season, if_exists='replace'):
-    
+    def add_basic_boxscores(self, start_season, end_season, if_exists='replace',playoffs=False):
+        game_type = ['Regular Season', 'Playoffs']
+
         table_name = 'team_basic_boxscores'
+
+        if playoffs == False:
+            game_type.remove('Playoffs')
 
         if if_exists == 'replace':
             self.conn.execute('DROP TABLE IF EXISTS ' + table_name)
@@ -57,8 +61,8 @@ class db:
 
         for season in range(start_season, end_season+1):
             season_str = season_string(season)
-
-            for season_type in ['Regular Season', 'Playoffs']:
+            
+            for season_type in game_type:
                 boxscores = leaguegamelog.LeagueGameLog(season=season_str, season_type_all_star=season_type).get_data_frames()[0]
                 self.season_boxscores.append(boxscores)
                 time.sleep(2)
@@ -383,7 +387,7 @@ if __name__ == '__main__':
     conn = sqlite3.connect("C:\\Users\\alexp\\src\\NBA_Models\\sqlite\\db\\nba_data.db")
     obj = db(conn=conn)
     #obj.add_agg_boxscores()
-    #obj.add_basic_boxscores(2013,2023)
+    obj.add_basic_boxscores(2013,2023)
     #obj.add_advanced_boxscores(2013,2023)
     #obj.add_player_game_logs(2013,2023,if_exists='replace')
     #update_all_data(conn=conn, season=2023,dates=[])
